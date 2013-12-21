@@ -18,7 +18,7 @@
 
             /*event in day or week view*/
             .dhx_cal_event.past_event div{
-                background-color: black !important;
+                background-color: lightgray !important;
                 color: white !important;
             }
             /*multi-day event in month view*/
@@ -67,7 +67,7 @@
                 scheduler.config.last_hour = 22;
                 
                 scheduler.templates.event_class = function(start, end, event) {
-                    if (start < new Date()) // event start before control date
+                    if (end < new Date()) // event start before control date
                         return "past_event";
                     if (event.subject) // if event has subject property then special class should be assigned
                         return "event_" + event.subject;
@@ -96,7 +96,7 @@
 
                 scheduler.config.lightbox.sections = [
                     {name: "description", height: 43, map_to: "text", type: "textarea", focus: true},
-                    {name: "仪器", height: 20, type: "select", options: subject, map_to: "subject"},
+                    {name: "subject", height: 20, type: "select", options: subject, map_to: "仪器"},
                     {name: "time", height: 72, type: "time", map_to: "auto"}
                 ];
                 var today = new Date();
