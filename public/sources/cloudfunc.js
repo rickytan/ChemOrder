@@ -25,11 +25,11 @@ var AVCloud = AVCloud || {};
         if (end === null)
             end = new Date(3000, 0, 1);
         callback([
-            {start_date: "2013-12-18 09:00", end_date: "2013-12-18 12:00", text: "FT", subject: 'english'},
-            {start_date: "2013-12-20 10:00", end_date: "2013-12-21 16:00", text: "仪器A", subject: 'math'},
-            {start_date: "2013-12-21 10:00", end_date: "2013-12-21 14:00", text: "仪器B", subject: 'science'},
-            {start_date: "2013-12-23 16:00", end_date: "2013-12-23 17:00", text: "仪器A", subject: 'english'},
-            {start_date: "2013-12-24 09:00", end_date: "2013-12-24 17:00", text: "FT"}
+            {id:1, start_date: "2013-12-18 09:00", end_date: "2013-12-18 12:00", text: "FT", instrument: '1'},
+            {id:2, start_date: "2013-12-20 10:00", end_date: "2013-12-21 16:00", text: "仪器A", instrument: '2'},
+            {id:3, start_date: "2013-12-21 10:00", end_date: "2013-12-21 14:00", text: "仪器B", instrument: '3'},
+            {id:4, start_date: "2013-12-23 16:00", end_date: "2013-12-23 17:00", text: "仪器A", instrument: '2'},
+            {id:5, start_date: "2013-12-24 09:00", end_date: "2013-12-24 17:00", text: "FT", instrument: '1'}
         ]);
     };
 })();

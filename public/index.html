@@ -6,6 +6,7 @@
         <title>化学仪器预约</title>
         <link rel="stylesheet" type="text/css" href="http://chemorder.avosapps.com/sources/dhtmlxscheduler.css" media="screen" title="no title">
         <script type="text/javascript" src="http://chemorder.avosapps.com/sources/dhtmlxscheduler.js"></script>
+        <script type="text/javascript" src="http://chemorder.avosapps.com/sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
         <script type="text/javascript" src="http://chemorder.avosapps.com/sources/locale/locale_cn.js"></script>
         <script type="text/javascript" src="http://chemorder.avosapps.com/sources/cloudfunc.js"></script>
         <style type="text/css" media="screen">
@@ -64,7 +65,9 @@
                 scheduler.config.multi_day = true;
                 scheduler.locale.labels.section_subject = "Subject";
                 scheduler.config.first_hour = 8;
-                scheduler.config.last_hour = 22;
+                scheduler.config.last_hour = 22.5;
+                scheduler.locale.labels.agenda_tab="预约记录";
+                scheduler.config.agenda_start = new Date();
                 
                 scheduler.templates.event_class = function(start, end, event) {
                     if (end < new Date()) // event start before control date
@@ -93,6 +96,12 @@
                     {key: 'math', label: 'Math'},
                     {key: 'science', label: 'Science'}
                 ];
+                var instrument = [
+                    {key: '1', label: '仪器1'},
+                    {key: '1', label: '仪器1'},
+                    {key: '1', label: '仪器1'},
+                    {key: '1', label: '仪器1'}
+                ]
 
                 scheduler.config.lightbox.sections = [
                     {name: "description", height: 43, map_to: "text", type: "textarea", focus: true},
@@ -114,6 +123,10 @@
                 <div class="dhx_cal_next_button">&nbsp;</div>
                 <div class="dhx_cal_today_button"></div>
                 <div class="dhx_cal_date"></div>
+                <div class="dhx_cal_tab" name="day_tab" style="right:204px;"></div>
+                <div class="dhx_cal_tab" name="week_tab" style="right:204px;"></div>
+                <div class="dhx_cal_tab" name="month_tab" style="right:204px;"></div>
+                <div class="dhx_cal_tab" name="agenda_tab" style="right:280px;"></div>
             </div>
             <div class="dhx_cal_header">
             </div>
