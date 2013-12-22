@@ -4,11 +4,12 @@
         <meta charset="utf-8"/>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>化学仪器预约</title>
-        <link rel="stylesheet" type="text/css" href="http://chemorder.avosapps.com/sources/dhtmlxscheduler.css" media="screen" title="no title">
-        <script type="text/javascript" src="http://chemorder.avosapps.com/sources/dhtmlxscheduler.js"></script>
-        <script type="text/javascript" src="http://chemorder.avosapps.com/sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
-        <script type="text/javascript" src="http://chemorder.avosapps.com/sources/locale/locale_cn.js"></script>
-        <script type="text/javascript" src="http://chemorder.avosapps.com/sources/cloudfunc.js"></script>
+        <link rel="stylesheet" type="text/css" href="//chemorder.avosapps.com/sources/dhtmlxscheduler.css" media="screen" title="no title">
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/dhtmlxscheduler.js"></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_units.js"></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/locale/locale_cn.js"></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/cloudfunc.js"></script>
         <style type="text/css" media="screen">
             html, body{
                 margin:0;
@@ -59,16 +60,30 @@
         </style>
 
         <script type="text/javascript">
+            var instruments = [
+                {key: '1', label: '仪器1'},
+                {key: '2', label: '仪器2'},
+                {key: '3', label: '仪器3'},
+                {key: '4', label: '仪器4'}
+            ];
+            
             function init() {
                 scheduler.config.xml_date = "%Y-%m-%d %H:%i";
                 scheduler.config.time_step = 30;
                 scheduler.config.multi_day = true;
-                scheduler.locale.labels.section_subject = "Subject";
                 scheduler.config.first_hour = 8;
                 scheduler.config.last_hour = 22.5;
-                scheduler.locale.labels.agenda_tab="预约记录";
+                scheduler.config.event_duration = 120;
+                scheduler.config.show_loading = true;
+                scheduler.config.auto_end_date = true;
+                scheduler.config.full_day = true;
+                scheduler.config.mark_now = true;
+                scheduler.config.details_on_create=false;
                 scheduler.config.agenda_start = new Date();
-                
+                scheduler.locale.labels.section_instrument = "仪器";
+                scheduler.locale.labels.agenda_tab = "预约记录";
+                scheduler.locale.labels.unit_tab = "仪器";
+
                 scheduler.templates.event_class = function(start, end, event) {
                     if (end < new Date()) // event start before control date
                         return "past_event";
@@ -80,7 +95,7 @@
                     /*
                      Note that it is possible to create more complex checks
                      events with the same properties could have different CSS classes depending on the current view:
-                 
+                     
                      var mode = scheduler.getState().mode;
                      if(mode == "day"){
                      // custom logic here
@@ -90,28 +105,29 @@
                      }
                      */
                 };
-                var subject = [
-                    {key: '', label: 'Appointment'},
-                    {key: 'english', label: 'English'},
-                    {key: 'math', label: 'Math'},
-                    {key: 'science', label: 'Science'}
-                ];
-                var instrument = [
-                    {key: '1', label: '仪器1'},
-                    {key: '1', label: '仪器1'},
-                    {key: '1', label: '仪器1'},
-                    {key: '1', label: '仪器1'}
-                ]
+
+                scheduler.serverList("instruments", instruments);
 
                 scheduler.config.lightbox.sections = [
-                    {name: "description", height: 43, map_to: "text", type: "textarea", focus: true},
-                    {name: "subject", height: 20, type: "select", options: subject, map_to: "仪器"},
-                    {name: "time", height: 72, type: "time", map_to: "auto"}
+                    {name: "description", height: 43, map_to: "text", type: "textarea", focus: true, default_value: "说明"},
+                    {name: "instrument", height: 20, type: "select", options: scheduler.serverList("instruments"), map_to: "instrument"},
+                    {name: "time", height: 72, type: "time", map_to: "auto", time_format:["%Y","%m","%d","%H:%i"]}
                 ];
+                scheduler.createUnitsView({
+                    name: "unit",
+                    property: "instrument",
+                    list: scheduler.serverList("instruments"),
+                    size: 20,
+                    step: 1
+                });
+                scheduler.attachEvent("onEventSave", function(id, data) {
+                    
+                });
+
                 var today = new Date();
                 scheduler.init('orders', today, "week");
                 AVCloud.loadEvents(new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay()), null, function(events) {
-                    scheduler.parse(events,'json');
+                    scheduler.parse(events, 'json');
                 });
             }
         </script>
@@ -127,6 +143,7 @@
                 <div class="dhx_cal_tab" name="week_tab" style="right:204px;"></div>
                 <div class="dhx_cal_tab" name="month_tab" style="right:204px;"></div>
                 <div class="dhx_cal_tab" name="agenda_tab" style="right:280px;"></div>
+                <div class="dhx_cal_tab" name="unit_tab" style="right:280px;"></div>
             </div>
             <div class="dhx_cal_header">
             </div>

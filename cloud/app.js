@@ -6,12 +6,16 @@ var app = express();
 app.set('views','cloud/views');   //设置模板目录
 app.set('view engine', 'ejs');    // 设置template引擎
 app.use(express.bodyParser());    // 读取请求body的中间件
+app.use(express.cookieParser("mvoiwnaksdjijwf9823flkjasijdfae"));
+app.use(avosExpressCookieSession({cookie:{maxAge:3600}}));
+
 //使用express路由API服务/hello的http GET请求
 app.get('/hello', function(req, res) {
   res.render('hello', { message: 'Congrats, you just set up your app!' });
 });
 app.post('/event/add', function(req, res) {
-    
+    var event = new AV.Object("Event");
+    event.set("startDate", req.params.start_date);
 });
 app.post('/event/del', function(req, res) {
     
