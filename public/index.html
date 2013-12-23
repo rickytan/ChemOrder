@@ -89,10 +89,16 @@
             .dhx_cal_event_line.instrument_4{
                 background-color: #FF5353 !important;
             }
-            .dhx_cal_event.instrument_5,.dhx_cal_event_line.instrument_5 div{
+            .dhx_cal_event.instrument_5 div{
                 background-color: #e0ffff !important;
             }
-            .dhx_cal_event.instrument_6,.dhx_cal_event_line.instrument_6 div{
+            .dhx_cal_event_line.instrument_5{
+                background-color: #e0ffff !important;
+            }
+            .dhx_cal_event.instrument_6 div{
+                background-color: #6a36a5 !important;
+            }
+            .dhx_cal_event_line.instrument_6{
                 background-color: #6a36a5 !important;
             }
             .dhx_cal_event.my_event {
@@ -219,14 +225,11 @@
                 AV.Object.createWithoutData("Event", id).destroy({
                     success: function() {
                         dhtmlx.message("已删除！");
-                        scheduler.hideCover();
                     },
                     error: function() {
                         dhtmlx.message("删除失败！");
-                        scheduler.hideCover();
                     }
                 });
-                scheduler.showCover();
             }
 
             function showLogin() {
@@ -339,8 +342,10 @@
                 });
                 scheduler.attachEvent("onEventSave", function(id, data) {
                     this.hideCover();
-                    data.text = AV.User.current().getUsername() + "预约了 " + getInstrumentName(data.instrument) + ",TA说：" + data.text;
-                    saveEvent(id, data);
+                    if (typeof id !== 'string') {
+                        data.text = AV.User.current().getUsername() + "预约了 " + getInstrumentName(data.instrument) + ",TA说：" + data.text;
+                        saveEvent(id, data);
+                    }
                     return true;
                 });
                 scheduler.attachEvent("onEventChanged", function(id, data) {
@@ -357,21 +362,25 @@
 
                 });
                 scheduler.attachEvent("onDblClick", function(id, e) {
+
                     return checkEventOwner(id);
                 });
                 scheduler.attachEvent("onBeforeLightbox", function(id) {
-                    var event = scheduler.getEvent(id);
-                    var events = scheduler.getEvents(event.start_date, event.end_date);
                     var keys = [];
-                    events.forEach(function(o, i) {
-                        if (o.id !== event.id) {
-                            keys.push(o.instrument);
-                        }
-                    });
+                    if (!this.getState().select_id) {   // new create
+                        var event = scheduler.getEvent(id);
+                        var events = scheduler.getEvents(event.start_date, event.end_date);
+                        events.forEach(function(o, i) {
+                            if (o.id !== event.id) {
+                                keys.push(o.instrument);
+                            }
+                        });
+                    }
                     var ins = instruments.filter(function(v, i, a) {
                         return keys.indexOf(v.key) === -1;
                     });
                     this.updateCollection("instruments", ins);
+
                     return true;
                 });
                 scheduler.attachEvent("onBeforeDrag", function(id, mode, e) {
