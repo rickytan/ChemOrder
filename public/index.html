@@ -46,9 +46,27 @@
                 margin-left: 60px;
                 margin-top: 1em;
             }
+            .dhx_cal_event.instrument_1 div{
+                background-color: #12be00 !important;
+            }
+            .dhx_cal_event.instrument_2 div{
+                background-color: #2babf5 !important;
+            }
+            .dhx_cal_event.instrument_3 div{
+                background-color: #FFB951 !important;
+            }
+            .dhx_cal_event.instrument_4 div{
+                background-color: #FF5353 !important;
+            }
+            .dhx_cal_event.instrument_5 div{
+                background-color: #e0ffff !important;
+            }
+            .dhx_cal_event.instrument_6 div{
+                background-color: #6a36a5 !important;
+            }
             /*event in day or week view*/
             .dhx_cal_event.past_event div{
-                background-color: lightgray !important;
+                background-color: #ECECEC !important;
                 color: white !important;
             }
             /*multi-day event in month view*/
@@ -99,12 +117,82 @@
             AV.useAVCloudCN();
 
             function getInstrumentName(key) {
-                instruments.forEach(function(o,i){
+                instruments.forEach(function(o, i) {
                     if (o.key === key)
                         return o.label;
                 });
                 return "";
             }
+            function checkLogin() {
+                if (AV.User.current())
+                    return true;
+                else {
+                    showLogin();
+                    return false;
+                }
+            }
+            function checkEventOwner(data) {
+                if (checkLogin()) {
+                    if (typeof data !== "object")
+                        data = scheduler.getEvent(data);
+                    if (!data)
+                        return false;
+                    if (data.owner.objectId === AV.User.current().id)
+                        return true;
+                    else {
+                        dhtmlx.message("不是你的不要改啦...");
+                        return false;
+                    }
+                }
+            }
+            function saveEvent(id, data) {
+                data.owner = AV.User.current();
+                data.text = AV.User.current().getUsername() + "预订了" + getInstrumentName(data.instrument) + ",TA说：" + data.text;
+                var event = new AV.Object("Event");
+                event.save(data, {
+                    success: function(event) {
+                        dhtmlx.message("保存成功！");
+                        scheduler.editStop(id);
+                        scheduler.unselect(id);
+                    },
+                    error: function(event, error) {
+                        dhtmlx.message("保存失败！");
+                    }
+                });
+            }
+            function updateEvent(data) {
+                var query = new AV.Query(AV.Object.extend("Event"));
+                query.get(data.id, {
+                    success: function(event) {
+                        event.save(data, {
+                            success: function(event) {
+                                dhtmlx.message("保存成功！");
+                                scheduler.updateEvent(data.id);
+                            },
+                            error: function(event, error) {
+                                dhtmlx.message("保存失败！");
+                            }
+                        });
+                    },
+                    error: function(event, error) {
+                        dhtmlx.message("更新失败！");
+                    }
+                });
+            }
+
+            function deleteEvent(id) {
+                if (checkEventOwner(id)) {
+                    AV.Object.createWithoutData("Event", id).destroy({
+                        success: function() {
+                            dhtmlx.message("已删除！");
+                        },
+                        error: function() {
+                            dhtmlx.message("删除失败！");
+                        }
+                    });
+                }
+            }
+
             function showlogin() {
                 var form = document.createElement("form");
                 form.id = "login_form";
@@ -143,8 +231,9 @@
                     title: "请先登录",
                     content: form
                 });
-
             }
+            ;
+
             function init() {
                 scheduler.config.xml_date = "%Y-%m-%d %H:%i";
                 scheduler.config.time_step = 30;
@@ -167,8 +256,8 @@
                 scheduler.templates.event_class = function(start, end, event) {
                     if (end < new Date()) // event start before control date
                         return "past_event";
-                    if (event.subject) // if event has subject property then special class should be assigned
-                        return "event_" + event.subject;
+                    if (event.instrument) // if event has subject property then special class should be assigned
+                        return "instrument_" + event.instrument;
 
                     return ""; // default return
 
@@ -200,31 +289,39 @@
                     size: 20,
                     step: 1
                 });
-                scheduler.attachEvent("onEventSave", function(id, data) {
-
+                scheduler.attachEvent("onEventSave", function(id, data, flag) {
+                    saveEvent(id, data);
+                    return true;
                 });
-                scheduler.attachEvent("onEventAdded", function(id, data) {
-                    var event = new AV.Object("Event");
-                    data.owner = AV.User.current());
-                    data.text = AV.User.current().getUsername() + "预订了" + getInstrumentName(data.instrument) + ",TA说：" + data.text);
-                    event.save(data, {
-                        success: function(event) {
-                            dhtmlx.message("保存成功！");
-                        },
-                        error: function(event, error) {
-                            dhtmlx.message("保存失败！");
-                        }
-                    });
+
+                scheduler.attachEvent("onBeforeEventChanged", function(ev, e, flag, ev_old) {
+                    if (flag) {
+                        scheduler.unselect(ev.id);
+                        scheduler.showLightbox(ev.id);
+                        return true;
+                    }
+                    else {
+                        updateEvent(ev);
+                    }
+                    return true;
+                });
+
+                scheduler.attachEvent("onBeforeEventDelete", function(id, e) {
+                    return checkEventOwner(id);
+                });
+                scheduler.attachEvent("onEventDeleted", function(id) {
+                    deleteEvent(id);
                 });
                 scheduler.attachEvent("onEventCollision", function(ev, collisions) {
-                    
+
                 });
                 scheduler.attachEvent("onBeforeDrag", function(id, mode, e) {
-                    if (AV.User.current())
-                        return true;
-                    else {
-                        showlogin();
-                        return false;
+                    if (checkLogin()) {
+                        if (mode === 'create')
+                            return true;
+                        else {
+                            return checkEventOwner();
+                        }
                     }
                 });
 
@@ -236,14 +333,14 @@
                 query.greaterThan("start_date", start).find({
                     success: function(events) {
                         var data = [];
-                        events.forEach(function(o,i){
+                        events.forEach(function(o, i) {
                             var d = o.toJSON();
                             d.id = d.objectId;
                             d.start_date = new Date(d.start_date.iso);
                             d.end_date = new Date(d.end_date.iso);
                             data.push(d);
                         });
-                        scheduler.parse(data,'json');
+                        scheduler.parse(data, 'json');
                     },
                     error: function(error) {
                         dhtmlx.message("加载失败！请刷新网页");
