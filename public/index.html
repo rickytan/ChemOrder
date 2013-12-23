@@ -205,12 +205,9 @@
                 });
                 scheduler.attachEvent("onEventAdded", function(id, data) {
                     var event = new AV.Object("Event");
-                    event.set("start_date", data.start_date);
-                    event.set("end_date", data.end_date);
-                    event.set("instrument", data.instrument);
-                    event.set("owner", AV.User.current());
-                    event.set("text", AV.User.current().getUsername() + "预订了" + getInstrumentName(data.instrument) + ",TA说：" + data.text);
-                    event.save({}, {
+                    data.owner = AV.User.current());
+                    data.text = AV.User.current().getUsername() + "预订了" + getInstrumentName(data.instrument) + ",TA说：" + data.text);
+                    event.save(data, {
                         success: function(event) {
                             dhtmlx.message("保存成功！");
                         },
