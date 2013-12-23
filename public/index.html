@@ -9,7 +9,7 @@
         <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
         <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_units.js"></script>
         <script type="text/javascript" src="//chemorder.avosapps.com/sources/locale/locale_cn.js"></script>
-        <script type="text/javascript" src="sources/av.js"></script>
+        <script src="https://cn.avoscloud.com/scripts/lib/av-0.2.7.min.js"></script>
         <style type="text/css" media="screen">
             html, body{
                 margin:0;
@@ -98,33 +98,52 @@
             AV.initialize("avodj4g7s3agqk70yagr06c7bcpjeh3afuorowptvlx78rui", "xekhpzxntxakkq59iwxqzyie0lz9s217h64y28payas6jd8x");
             AV.useAVCloudCN();
 
-            function showlogin() {
-
-                var box = dhtmlx.modalbox({
-                    id: "login_box",
-                    title: "请先登录",
-                    text: '<form action="#" id="login_form"><label>用户名：</label><input type="text" name="username" placeholder="学号" /><br /><label>密码：</label><input type="password" placeholder="懂的人懂..." name="password"/><br /><input type="submit" value="登录"/><input type="reset" value="取消"/></form>'
+            function getInstrumentName(key) {
+                instruments.forEach(function(o,i){
+                    if (o.key === key)
+                        return o.label;
                 });
-                var form = document.forms['login_form'];
+                return "";
+            }
+            function showlogin() {
+                var form = document.createElement("form");
+                form.id = "login_form";
+                form.action = "#";
+                form.innerHTML = '<label>用户名：</label><input type="text" name="username" placeholder="学号" /><br /><label>密码：</label><input type="password" placeholder="懂的人懂..." name="password"/><br /><input type="submit" value="登录"/><input type="reset" value="取消"/>';
                 form.onsubmit = function(e) {
                     e = e || window.event;
-                    e.stopPrapogation();
-                    var u = document.forms["login_form"]["username"];
-                    var p = document.forms["login_form"]["password"];
+                    e.stopPropagation();
+                    var u = this["username"].value;
+                    var p = this["password"].value;
                     AV.User.logIn(u, p, {
                         success: function() {
 
                         },
                         error: function() {
-
+                            if (u + "_bnpc" === p)
+                                AV.User.signUp(u, p, {}, {
+                                    success: function(user) {
+                                        alert(user);
+                                    },
+                                    error: function(user, error) {
+                                        alert(error);
+                                    }
+                                });
                         }
                     });
                     return false;
                 };
                 form.onreset = function() {
-                    box.remove();
+                    //box.remove();
+                    scheduler.hideCover(box);
                     return false;
                 };
+                var box = dhtmlx.modalbox({
+                    id: "login_box",
+                    title: "请先登录",
+                    content: form
+                });
+
             }
             function init() {
                 scheduler.config.xml_date = "%Y-%m-%d %H:%i";
@@ -185,7 +204,23 @@
 
                 });
                 scheduler.attachEvent("onEventAdded", function(id, data) {
-
+                    var event = new AV.Object("Event");
+                    event.set("start_date", data.start_date);
+                    event.set("end_date", data.end_date);
+                    event.set("instrument", data.instrument);
+                    event.set("owner", AV.User.current());
+                    event.set("text", AV.User.current().getUsername() + "预订了" + getInstrumentName(data.instrument) + ",TA说：" + data.text);
+                    event.save({}, {
+                        success: function(event) {
+                            dhtmlx.message("保存成功！");
+                        },
+                        error: function(event, error) {
+                            dhtmlx.message("保存失败！");
+                        }
+                    });
+                });
+                scheduler.attachEvent("onEventCollision", function(ev, collisions) {
+                    
                 });
                 scheduler.attachEvent("onBeforeDrag", function(id, mode, e) {
                     if (AV.User.current())
@@ -201,9 +236,17 @@
 
                 var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay());
                 var query = new AV.Query("Event");
-                query.greaterThan("startDate", start).find({
+                query.greaterThan("start_date", start).find({
                     success: function(events) {
-                        scheduler.parse(events, 'json');
+                        var data = [];
+                        events.forEach(function(o,i){
+                            var d = o.toJSON();
+                            d.id = d.objectId;
+                            d.start_date = new Date(d.start_date.iso);
+                            d.end_date = new Date(d.end_date.iso);
+                            data.push(d);
+                        });
+                        scheduler.parse(data,'json');
                     },
                     error: function(error) {
                         dhtmlx.message("加载失败！请刷新网页");
