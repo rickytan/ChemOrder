@@ -4,12 +4,12 @@
         <meta charset="utf-8"/>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
         <title>化学实验仪器预约</title>
-        <link rel="stylesheet" type="text/css" href="sources/dhtmlxscheduler.css" media="screen" title="no title">
-        <script type="text/javascript" src="sources/dhtmlxscheduler.js"></script>
-        <script type="text/javascript" src="sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
-        <script type="text/javascript" src="sources/ext/dhtmlxscheduler_units.js"></script>
-        <script type="text/javascript" src="sources/locale/locale_cn.js"></script>
-        <script type="text/javascript" src="sources/av-mini.js"></script>
+        <link rel="stylesheet" type="text/css" href="//chemorder.avosapps.com/sources/dhtmlxscheduler.css" media="screen" title="no title">
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/dhtmlxscheduler.js"></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_agenda_view.js" ></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/ext/dhtmlxscheduler_units.js"></script>
+        <script type="text/javascript" src="//chemorder.avosapps.com/sources/locale/locale_cn.js"></script>
+        <!--script type="text/javascript" src="//chemorder.avosapps.com/sources/av-mini.js"></script-->
         <script type="text/javascript" src="https://cn.avoscloud.com/scripts/lib/av-0.2.7.min.js"></script>
         <style type="text/css" media="screen">
             html, body{
@@ -68,19 +68,31 @@
             .dhx_cal_event.instrument_1 div{
                 background-color: #12be00 !important;
             }
+            .dhx_cal_event_line.instrument_1{
+                background-color: #12be00 !important;
+            }
             .dhx_cal_event.instrument_2 div{
+                background-color: #2babf5 !important;
+            }
+            .dhx_cal_event_line.instrument_2{
                 background-color: #2babf5 !important;
             }
             .dhx_cal_event.instrument_3 div{
                 background-color: #FFB951 !important;
             }
+            .dhx_cal_event_line.instrument_3{
+                background-color: #FFB951 !important;
+            }
             .dhx_cal_event.instrument_4 div{
                 background-color: #FF5353 !important;
             }
-            .dhx_cal_event.instrument_5 div{
+            .dhx_cal_event_line.instrument_4{
+                background-color: #FF5353 !important;
+            }
+            .dhx_cal_event.instrument_5,.dhx_cal_event_line.instrument_5 div{
                 background-color: #e0ffff !important;
             }
-            .dhx_cal_event.instrument_6 div{
+            .dhx_cal_event.instrument_6,.dhx_cal_event_line.instrument_6 div{
                 background-color: #6a36a5 !important;
             }
             .dhx_cal_event.my_event {
@@ -347,29 +359,20 @@
                 scheduler.attachEvent("onDblClick", function(id, e) {
                     return checkEventOwner(id);
                 });
-                scheduler.attachEvent("onLightbox", function(id) {
-                    if (this._manualCall) {
-                        this._manualCall = false;
-                        return;
-                    }
+                scheduler.attachEvent("onBeforeLightbox", function(id) {
                     var event = scheduler.getEvent(id);
                     var events = scheduler.getEvents(event.start_date, event.end_date);
-                    var colli = false;
                     var keys = [];
-                    events.forEach(function(o,i){
+                    events.forEach(function(o, i) {
                         if (o.id !== event.id) {
-                            colli = true;
                             keys.push(o.instrument);
                         }
                     });
-                    if (colli) {
-                        var ins = instruments.filter(function(v,i,a){
-                            return keys.indexOf(v.key)===-1;
-                        });
-                        this.updateCollection("instruments",ins);
-                        this._manualCall = true;
-                        this.showLightbox(this.getState().lightbox_id);
-                    }
+                    var ins = instruments.filter(function(v, i, a) {
+                        return keys.indexOf(v.key) === -1;
+                    });
+                    this.updateCollection("instruments", ins);
+                    return true;
                 });
                 scheduler.attachEvent("onBeforeDrag", function(id, mode, e) {
                     if (checkLogin()) {
@@ -380,7 +383,7 @@
                         }
                     }
                 });
-                
+
                 scheduler.init('orders', today, "week");
                 var start = new Date(today.getFullYear(), today.getMonth(), today.getDate() - today.getDay() - 7);
                 var query = new AV.Query("Event");
