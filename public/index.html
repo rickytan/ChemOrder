@@ -103,6 +103,7 @@
             }
             .dhx_cal_event.my_event {
                 border-top: 4px solid #000;
+                font-style: italic;
             }
             .dhx_cal_event.past_event div{
                 background-color: #ECECEC !important;
@@ -308,7 +309,7 @@
                     if (event.instrument) // if event has subject property then special class should be assigned
                         cls += " instrument_" + event.instrument;
                     try {
-                        if (event.owner.objectId === AV.User.current().id)
+                        if (event.owner.id === AV.User.current().id)
                             cls += " my_event";
                     } catch (e) {
                     }
