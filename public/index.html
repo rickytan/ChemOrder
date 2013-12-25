@@ -134,6 +134,13 @@
             AV.initialize("avodj4g7s3agqk70yagr06c7bcpjeh3afuorowptvlx78rui", "xekhpzxntxakkq59iwxqzyie0lz9s217h64y28payas6jd8x");
             AV.useAVCloudCN();
 
+            if (!Date.prototype.toJSON) {
+                Date.prototype.toJSON = function() {
+                    var json = "" + this.getUTCFullYear() + "-" + this.getUTCMonth() + "-" + this.getUTCDate() + "T" + this.getUTCHours() + ":" + this.getUTCMinutes() + ":" + this.getUTCSeconds() + "." + this.getUTCMilliseconds() + "Z";
+                    return json;
+                }
+            }
+
             function $(id) {
                 return document.getElementById(id);
             }
@@ -247,8 +254,8 @@
             function showLogin() {
                 var form = document.getElementById("login_form");
                 form.onsubmit = function(e) {
-                    e = e || window.event;
-                    e.stopPropagation();
+                    //e = e || window.event;
+                    //e.stopPropagation();
                     var u = this["username"].value;
                     var p = this["password"].value;
                     AV.User.logIn(u, p, {
